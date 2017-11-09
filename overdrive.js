@@ -77,19 +77,27 @@ function searchAndReplace(text, patterns, replacers) {
 
 function createDownloadIndex(input_file, base_url) {
   return read_data(input_file)
-  .then(data=>generateBookLinks(base_url, data))
+  .then(data => generateBookLinks(base_url, data))
   .then(links => '<ol>' + links.map(link => '<li>' + link + '</li>\r\n').join('\r\n') + '</ol>' )
   .then(data => {write_file('download.html', data); return data }) ;
 }
 
 function generateBookLinks(base_url, data) {
-  let links = data.split("\r\n").filter(line=>line.length > 0 && line.startsWith("/"));
-  return links.map(l => {
-    let s = l.lastIndexOf('/'),
-      q = l.lastIndexOf('?'),
-      fn = l.slice(s + 1, (q > 0 ? q : l.length));
-    return `<a href="${base_url}${l}" download="${fn}" onclick="this.style.color='grey';">${fn}</a>`;
-  }); 
+  let links = data
+    .replace(/$/gim, '\n')
+    .split("\n")
+    .filter(line => line.startsWith("/"))
+    .map(line => {
+      let s = line.lastIndexOf('/'),
+          q = line.lastIndexOf('?'),
+          fn = line.slice(s + 1, (q > 0 ? q : line.length));
+      return `<a href="${base_url}${line}" download="${fn}" onclick="this.style.color='grey';">${fn}</a>`;
+    });
+
+  if (links.length == 0) 
+    console.log("No links generated!");
+
+  return links;
 }
 
 function write_file(file_name, data) {
