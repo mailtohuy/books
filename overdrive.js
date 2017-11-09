@@ -1,6 +1,7 @@
 const fs = require('fs');
 const b64ContentPattern = /(<body><script type="text\/javascript">parent\.__bif_cfc0\(self,'(.*?)'\)<\/script><\/body>)/gim ; 
-const baseRefPattern = /<base href=.*?>/img;
+const hrefPattern = /(href=\")([^\"]*\/)([^\"]+\")/img;
+const srcPattern = /(src=\")([^\"]*\/)([^\"]+\")/img;
 const xhtml = /(\.xhtml)/img;
 var command = process.argv[2];
 if ( process.argv[2] == undefined )  {
@@ -33,7 +34,8 @@ if (command == "decode") {
 function decode(input_file) {
   return read_data(input_file)
   .then(data=>searchAndReplace(data, [b64ContentPattern] , [ (p,m,t)=>t.replace(p, new Buffer(m[2], 'base64').toString('utf8') )]))
-  .then(data=>searchAndReplace(data, [baseRefPattern] , [ (p,m,t)=>t.replace(p, '' )]))
+  .then(data=>searchAndReplace(data, [hrefPattern] , [ (p,m,t)=>t.replace(p, '$1$3' )]))
+  .then(data=>searchAndReplace(data, [srcPattern] , [ (p,m,t)=>t.replace(p, '$1$3' )]))  
   .then(data=>searchAndReplace(data, [xhtml] , [ (p,m,t)=>t.replace(p, '.html' )]));
 }
 
